@@ -1,0 +1,6 @@
+services:
+  clinicbookingv2.client:
+    image: ${DOCKER_REGISTRY-}clinicbookingv2client
+    build:
+      context: .
+      dockerfile: ClinicBookingV2/ClinicBookingV2/Dockerfile
