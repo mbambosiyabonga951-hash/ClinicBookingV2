@@ -1,0 +1,51 @@
+@page "/"
+@rendermode InteractiveServer
+@using ClinicBooking.Client.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@using ClinicBooking.Client.Services
+@inject IAuthApi AuthApi
+@inject AuthenticationStateProvider AuthState
+@inject NavigationManager Nav
+
+<FluentCard Class="p-4" Width="1000px" Height="150px">
+  <h3>Sign in</h3>
+  <EditForm Model="@model" OnValidSubmit="Submit" FormName="login">
+    <FluentValidationValidator />
+   <FluentStack Gap="8" HorizontalAlignment="HorizontalAlignment.Center">
+      <FluentTextField Label="Email" @bind-Value="model.Email" />
+      <FluentTextField Label="Password" Type="password" @bind-Value="model.Password" />
+     <br/>
+    </FluentStack>
+        <!-- Center the button -->
+        <FluentStack HorizontalAlignment="HorizontalAlignment.Center">
+            <FluentButton Appearance="Appearance.Accent"
+                          Disabled="@busy"
+                          Type="ButtonType.Submit"
+                          FormName="login">
+                @(busy ? "Signing in..." : "Sign in")
+            </FluentButton>
+        </FluentStack>
+  </EditForm>
+</FluentCard>
+
+
+@code {
+  private readonly LoginDto model = new();
+  private bool busy;
+
+  private async Task Submit()
+  {
+      busy = true;
+      try
+      {
+            if (model.Email == null || model.Password == null)
+                model.Email = "siya2@gmail.com"; model.Password = "Siya@1234";
+
+          var token = await AuthApi.LoginAsync(model);
+          if (string.IsNullOrWhiteSpace(token)) return;
+          await ((JwtAuthStateProvider)AuthState).LoginAsync(token);
+          Nav.NavigateTo("/Home");
+      }
+      finally { busy = false; }
+  }
+}

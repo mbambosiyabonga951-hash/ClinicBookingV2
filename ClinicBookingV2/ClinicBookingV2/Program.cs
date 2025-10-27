@@ -1,7 +1,9 @@
 //using BlazorApp2.Client.Pages;
 using ClinicBooking.Client.Services;
 using ClinicBookingV2.Client.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.FluentUI.AspNetCore.Components;
+using Blazored.LocalStorage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,12 +18,32 @@ builder.Services.AddHttpClient("Api", client =>
     client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "https://localhost:51657/");
     // client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
+
+// register Blazored.LocalStorage so ILocalStorageService is available
+builder.Services.AddBlazoredLocalStorage();
+
 // App services
-//builder.Services.AddScoped<IAuthApi, AuthApi>();
+builder.Services.AddScoped<IAuthApi, AuthApi>();
 builder.Services.AddScoped<IClinicsApi, ClinicsApi>();
 builder.Services.AddScoped<IPatientsApi, PatientsApi>();
 builder.Services.AddScoped<IAppointmentsApi, AppointmentsApi>();
 
+builder.Services.AddAuthorizationCore();
+builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthStateProvider>();
+builder.Services.AddScoped<JwtAuthStateProvider>();
+builder.Services.AddAuthorization();
+// optionally configure policies
+builder.Services.AddAuthorization(options =>
+{
+    // options.AddPolicy("MyPolicy", policy => policy.RequireClaim("..."));
+});
+
+builder.Services.AddFluentUIComponents();
+
+// Program.cs (Server)
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents()        // needed for InteractiveServer
+    .AddInteractiveWebAssemblyComponents();  // if you use InteractiveWebAssembly/Auto
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -42,7 +64,14 @@ app.UseStaticFiles();
 app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
-    .AddInteractiveWebAssemblyRenderMode();
-    //.AddAdditionalAssemblies(typeof(BlazorApp2.Client._Imports).Assembly);
+    .AddInteractiveWebAssemblyRenderMode()
+    .AddInteractiveServerRenderMode();
+
+
+//var app = builder.Build();
+//app.MapRazorComponents<App>()
+//   .()
+//   .AddInteractiveWebAssemblyRenderMode();
+
 
 app.Run();

@@ -28,6 +28,42 @@ public sealed class CreateAppointmentRequest
     public long ClinicId { get; set; }
     public long PatientId { get; set; }
     public DateTime? Date { get; set; }
-    public DateTime? StartTime { get; set; }  // or TimeOnly? if you prefer
+    public DateTime? StartTime { get; set; } 
     public DateTime? EndTime { get; set; }
+    public string? Email { get; set; }    
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+
+    public string SelectedClinicIdStr { get; set; } = "";
+    public string SelectedPatientIdStr { get; set; }   = "";
+
+    private DateTime? createDate;
+
+    private DateTime? createStartDateTime;
+    private DateTime? createEndDateTime;
+
+    public string PatientIdText
+    {
+        get => PatientId.ToString();
+        set
+        {
+            if (int.TryParse(value, out var id))
+            {
+                PatientId = id;
+            }
+        }
+    }
+
+    public string ClinicIdText
+    {
+        get => ClinicId.ToString();
+        set
+        {
+            if (int.TryParse(value, out var id))
+            {
+                ClinicId = id;
+            }
+        }
+    }
+
 }

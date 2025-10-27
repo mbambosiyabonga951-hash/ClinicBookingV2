@@ -1,0 +1,81 @@
+﻿@page "/CreateAppointments"
+@using ClinicBooking.Client.Models
+@using ClinicBooking.Client.Services
+@inject IClinicsApi ClinicsApi
+@inject IPatientsApi PatientsApi
+@inject IAppointmentsApi AppointmentsApi
+
+<h3 class="mb-2"> Create Appointments </h3>
+
+<FluentCard Class="custom-card" Style="overflow: visible;" Width="12000px" >
+    <EditForm Model="@createModel" OnValidSubmit="CreateAsync" FormName="createAppointmentForm">
+        <FluentStack Gap="8" Horizontal="false">
+
+            <FluentSelect TOption="long"
+                          Label="Clinic"
+                          @bind-Value="createModel.ClinicIdText"
+                          >
+                @foreach (var clinic in clinics)
+                {
+                    <FluentOption Value="@clinic.Id.ToString()">@clinic.Name</FluentOption>
+                }
+            </FluentSelect>
+
+            <FluentSelect TOption="long"
+                          Label="Patient"
+                          @bind-Value="createModel.PatientIdText">
+                @foreach (var patient in patients)
+                {
+                    <FluentOption Value="@patient.Id.ToString()">@patient.FirstName</FluentOption>
+                }
+            </FluentSelect>
+
+            <FluentDatePicker Label="Date" @bind-Value="createModel.Date" />
+            <FluentTimePicker Label="Start" @bind-Value="createModel.StartTime" />
+            <FluentTimePicker Label="End" @bind-Value="createModel.EndTime" />
+
+        </FluentStack>
+
+        <FluentStack HorizontalAlignment="HorizontalAlignment.Center">
+            <FluentAnchor Style="margin-top:10px;" Appearance="Appearance.Accent" Href="/AppointmentList">View Appointments</FluentAnchor>
+
+            <FluentButton Type="ButtonType.Submit" Style="margin-top:10px;" Appearance="Appearance.Accent"
+                      IconStart="@(new Icons.Regular.Size16.Add())" FormName="createAppointmentForm">
+            Add
+        </FluentButton>
+        </FluentStack>
+    </EditForm>
+</FluentCard>
+
+
+@code {
+    private readonly CreateAppointmentRequest createModel = new();
+    [Parameter]
+    public bool Visible { get; set; }
+    [Parameter] 
+    public EventCallback<CreateAppointmentRequest> CreateAppointmentClicked { get; set; }
+    private List<ClinicDto> clinics = new();
+    private List<PatientDto> patients = new();
+
+  
+    protected override async Task OnInitializedAsync()
+    {
+        if (createModel.ClinicId == 0 || createModel.PatientId == 0)
+        {
+            clinics = (await ClinicsApi.GetAsync()).ToList();
+            patients = (await PatientsApi.GetAsync()).ToList();
+
+            createModel.Date = DateTime.Today;
+            createModel.StartTime = DateTime.Today.AddHours(9);
+            createModel.EndTime = DateTime.Today.AddHours(10);
+        }
+    }
+
+
+    private async Task CreateAsync(EditContext _)
+    {
+        await AppointmentsApi.CreateAsync(createModel);
+        await CreateAppointmentClicked.InvokeAsync(createModel);
+    }
+}
+

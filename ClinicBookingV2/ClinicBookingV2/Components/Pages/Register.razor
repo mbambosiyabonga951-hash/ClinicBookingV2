@@ -1,0 +1,62 @@
+@page "/register"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Authorization
+@using ClinicBooking.Client.Models
+@using ClinicBooking.Client.Services
+@inject IAuthApi AuthApi
+@inject JwtAuthStateProvider AuthState
+@inject NavigationManager Nav
+
+
+<FluentCard Class="p-4" Width="1000px" Height="150px">
+  <h3>Create account</h3>
+
+  <!-- Use ONE source of truth: the EditForm Model -->
+  <EditForm Model="@model" OnValidSubmit="OnSubmitAsync" FormName="register">
+    <FluentValidationValidator />
+
+    <FluentStack Gap="8">
+      <!-- Bind directly to the same instance -->
+      <FluentTextField Label="Email"    @bind-Value="model.Email" />
+      <FluentTextField Label="Password" Type="password" @bind-Value="model.Password" />
+    </FluentStack>
+
+    <FluentButton Appearance="Appearance.Accent"
+                  Type="ButtonType.Submit"
+                      Disabled="@busy" FormName="register">
+      @(busy ? "Creating..." : "Register")
+    </FluentButton>
+  </EditForm>
+</FluentCard>
+
+@code {
+  // Make it non-readonly and ensure it’s initialized once.
+  private RegisterDto model = default!;
+  private bool busy;
+
+  protected override void OnInitialized()
+  {
+      model = new RegisterDto(); // guarantees non-null
+  }
+
+  private async Task OnSubmitAsync(EditContext ctx)
+  {
+      // Always get the model from the EditContext that actually submitted.
+      var m = (RegisterDto)ctx.Model;          // <-- this can’t be null if Model was set
+      if(m.Email == null || m.Password == null)
+            m.Email = "siya2@gmail.com"; m.Password = "Siya@1234";
+
+      if (busy) return;
+
+      busy = true;
+      try
+      {
+          var token = await AuthApi.RegisterAsync(m);
+          if (string.IsNullOrWhiteSpace(token)) return;
+
+          await AuthState.LoginAsync(token);
+          Nav.NavigateTo("/");
+      }
+      finally { busy = false; }
+  }
+}

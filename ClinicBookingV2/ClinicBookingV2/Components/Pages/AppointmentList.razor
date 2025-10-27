@@ -1,0 +1,46 @@
+﻿@page "/AppointmentList"
+@using ClinicBooking.Client.Models
+@using ClinicBooking.Client.Services
+@inject IClinicsApi ClinicsApi
+@inject IPatientsApi PatientsApi
+@inject IAppointmentsApi AppointmentsApi
+
+
+<h3 class="mb-2">Appointments by Clinic & Date</h3>
+<FluentCard Class="custom-card" Width="1000px" Height="250px">
+
+
+    <FluentStack Gap="8" Class="mb-6">
+        <FluentTextField Label="Clinic Id" @bind-Value="filterClinicIdStr" />
+        <FluentDatePicker @bind-Value="filterDate" Label="Date" />
+        <FluentButton Appearance="Appearance.Accent" OnClick="LoadAsync">Load</FluentButton>
+    </FluentStack>
+
+    <FluentDataGrid Items="@(appointments.AsQueryable())" Gridlines="true" GenerateStyles="true">
+        <PropertyColumn Property="@(a => a.Id)" Title="Id" />
+        <PropertyColumn Property="@(a => a.ClinicId)" Title="Clinic" />
+        <PropertyColumn Property="@(a => a.PatientId)" Title="Patient" />
+        <PropertyColumn Property="@(a => a.Date)" Title="Date" />
+        <PropertyColumn Property="@(a => a.StartTime)" Title="Start" />
+        <PropertyColumn Property="@(a => a.EndTime)" Title="End" />
+    </FluentDataGrid>
+</FluentCard>
+
+@code {
+
+    private List<AppointmentDto> appointments = new();
+    private string filterClinicIdStr = "";
+    private DateTime? filterDate = DateTime.Today;
+    private async Task LoadAsync()
+    {
+        if (string.IsNullOrWhiteSpace(filterClinicIdStr) || long.TryParse(filterClinicIdStr, out var clinicId))
+        {
+            appointments = new List<AppointmentDto>();
+            return;
+        }
+        var dateStr = (filterDate ?? DateTime.Today).ToString("yyyy-MM-dd");
+        appointments = (await AppointmentsApi.GetByClinicAndDateAsync(clinicId, dateStr)).ToList();
+    }
+
+
+}
