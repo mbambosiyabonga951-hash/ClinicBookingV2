@@ -1,0 +1,135 @@
+﻿@page "/"
+@using ClinicBooking.Client.Models
+@using ClinicBooking.Client.Services
+@inject IClinicsApi ClinicsApi
+@inject IPatientsApi PatientsApi
+@inject IAppointmentsApi AppointmentsApi
+
+<h3 class="mb-2">Create Appointment</h3>
+<br/>
+
+    <FluentCard Class="custom-card" Width="1000px" Height="150px">
+        <EditForm Model="@createModel"  OnValidSubmit="CreateAsync">
+            <FluentValidationValidator />
+            <FluentStack Gap="8" Horizontal="false">
+
+                <FluentTextField Label="Clinic Name" @bind-value="selectedClinicIdStr" />
+                <FluentTextField Label="Patient Name" @bind-value="selectedPatientIdStr" />
+
+                <FluentDatePicker @bind-value="createDate" Label="Date" />
+                <!-- Fix: Use DateTime? for FluentTimePicker binding -->
+                <FluentTimePicker @bind-value="createStartDateTime" Label="Start" />
+                <FluentTimePicker @bind-value="createEndDateTime" Label="End" />
+            </FluentStack>
+        <FluentButton IconStart="@(new Icons.Regular.Size16.Add())" OnClick="() => CreateAsync()"
+                      >Add</FluentButton>
+        </EditForm>
+    </FluentCard>
+
+
+
+
+
+    <br/>
+    <h3 class="mb-2">Appointments by Clinic & Date</h3>
+    <FluentCard Class="custom-card" Width="1000px" Height="250px">
+   
+
+        <FluentStack Gap="8" Class="mb-6">
+            <FluentTextField Label="Clinic Id" @bind-Value="filterClinicIdStr" />
+            <FluentDatePicker @bind-Value="filterDate" Label="Date" />
+            <FluentButton Appearance="Appearance.Accent" OnClick="LoadAsync">Load</FluentButton>
+        </FluentStack>
+ 
+        <FluentDataGrid Items="@(appointments.AsQueryable())" Gridlines="true" GenerateStyles="true">
+            <PropertyColumn Property="@(a => a.Id)" Title="Id" />
+            <PropertyColumn Property="@(a => a.ClinicId)" Title="Clinic" />
+            <PropertyColumn Property="@(a => a.PatientId)" Title="Patient" />
+            <PropertyColumn Property="@(a => a.Date)" Title="Date" />
+            <PropertyColumn Property="@(a => a.StartTime)" Title="Start" />
+            <PropertyColumn Property="@(a => a.EndTime)" Title="End" />
+        </FluentDataGrid>
+    </FluentCard>
+
+
+@code {
+
+    [Parameter]
+    public EventCallback CreateAppointClicked { get; set; }
+
+    private List<ClinicDto> clinics = new();
+    private List<PatientDto> patients = new();
+    private List<AppointmentDto> appointments = new();
+
+    private string selectedClinicIdStr = "";
+    private string selectedPatientIdStr = "";
+    private DateTime? createDate;
+
+    // Fix: Use DateTime? for FluentTimePicker binding
+    private DateTime? createStartDateTime;
+    private DateTime? createEndDateTime;
+
+    private string filterClinicIdStr = "";
+    private DateTime? filterDate = DateTime.Today;
+
+    private readonly CreateAppointmentRequest createModel = new();
+    private bool isBusy;
+
+    protected override async Task OnInitializedAsync()
+    {
+        clinics = (await ClinicsApi.GetAsync()).ToList();
+        patients = (await PatientsApi.GetAsync()).ToList();
+
+
+        if (clinics.Count > 0) 
+        { 
+          // selectedClinicIdStr = clinics[0].Id.ToString(); 
+           selectedClinicIdStr = clinics[0]?.Name;
+           filterClinicIdStr = clinics[0].Id.ToString(); 
+        }
+
+        if (patients.Count > 0) 
+        { 
+           selectedPatientIdStr = patients[0].Id.ToString(); 
+        }
+    }
+
+    private static string ToDate(DateTime? d) => (d ?? DateTime.Today).ToString("yyyy-MM-dd");
+    private static string ToTime(DateTime? dt) => (dt ?? DateTime.Today.AddHours(9)).ToString("HH:mm:ss");
+
+    private async Task CreateAsync()
+    {
+        isBusy = true;
+        try
+        {
+            _ = long.TryParse(selectedClinicIdStr, out var clinicId);
+            _ = long.TryParse(selectedPatientIdStr, out var patientId);
+
+            createModel.ClinicId = clinicId;
+            createModel.PatientId = patientId;
+
+            createModel.Date      = createDate;
+            createModel.StartTime = createStartDateTime;
+            createModel.EndTime   = createEndDateTime;
+
+            var created = await AppointmentsApi.CreateAsync(createModel);
+            if (created is not null)
+            {
+                if (long.TryParse(filterClinicIdStr, out var fId) && fId == created.ClinicId
+                    && (filterDate?.ToString("yyyy-MM-dd") ?? "") == created.Date)
+                    await LoadAsync();
+            }
+
+            createDate = createStartDateTime = createEndDateTime = null;
+        }
+        finally { isBusy = false; }
+    }
+
+    private async Task LoadAsync()
+    {
+        if (!long.TryParse(filterClinicIdStr, out var clinicId)) return;
+        var date = ToDate(filterDate);
+        appointments = (await AppointmentsApi.GetByClinicAndDateAsync(clinicId, date)).ToList();
+        StateHasChanged();
+    }
+}
