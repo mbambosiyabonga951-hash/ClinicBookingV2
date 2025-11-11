@@ -1,12 +1,14 @@
 ﻿@page "/book"
 @using ClinicBooking.Client.Models
 @using ClinicBooking.Client.Services
+@using Microsoft.AspNetCore.Components.Forms
 @inject IProvidersApi Providers
 @inject ITimeslotsApi Timeslots
 @inject IAppointmentsApi Appointments
 @inject IClinicsApi Clinics
 @inject IPatientsApi Patients
 @inject NavigationManager Nav
+@rendermode InteractiveWebAssembly
 
 <div class="container mt-4">
     <div class="card shadow-sm">

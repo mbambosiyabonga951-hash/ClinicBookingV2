@@ -12,6 +12,10 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 builder.Services.AddFluentUIComponents();
 
+builder.Services.AddSignalR();
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+
+
 builder.Services.AddHttpClient(); // registers IHttpClientFactory
 builder.Services.AddHttpClient("Api", client =>
 {
