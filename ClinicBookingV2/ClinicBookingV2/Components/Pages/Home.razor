@@ -45,8 +45,8 @@
                 }
             }
             createModel.Date = null;
-            createModel.StartTime = null;
-            createModel.EndTime = null;
+            createModel.StartUtc = DateTime.MinValue;
+            createModel.EndUtc = DateTime.UtcNow;
         }
         finally
         {

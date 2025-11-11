@@ -1,5 +1,7 @@
 using System.Net.Http.Json;
 using ClinicBooking.Client.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ClinicBooking.Client.Services;
 

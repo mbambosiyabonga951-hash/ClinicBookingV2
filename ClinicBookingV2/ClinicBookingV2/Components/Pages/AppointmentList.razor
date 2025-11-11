@@ -4,6 +4,7 @@
 @inject IClinicsApi ClinicsApi
 @inject IPatientsApi PatientsApi
 @inject IAppointmentsApi AppointmentsApi
+@rendermode InteractiveServer
 
 
 <h3 class="mb-2">Appointments by Clinic & Date</h3>
@@ -33,11 +34,13 @@
     private DateTime? filterDate = DateTime.Today;
     private async Task LoadAsync()
     {
-        if (string.IsNullOrWhiteSpace(filterClinicIdStr) || long.TryParse(filterClinicIdStr, out var clinicId))
+        if (string.IsNullOrWhiteSpace(filterClinicIdStr))
         {
             appointments = new List<AppointmentDto>();
             return;
         }
+
+        long.TryParse(filterClinicIdStr, out var clinicId);
         var dateStr = (filterDate ?? DateTime.Today).ToString("yyyy-MM-dd");
         appointments = (await AppointmentsApi.GetByClinicAndDateAsync(clinicId, dateStr)).ToList();
     }

@@ -1,69 +1,97 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace ClinicBooking.Client.Models;
+namespace ClinicBooking.Client.Models {
 
-// Auth
-public sealed class RegisterDto { public string? Email { get; set; } public string? Password { get; set; } }
-public sealed class LoginDto    { public string? Email { get; set; } public string? Password { get; set; } }
-public sealed class AuthResponse { public string? token { get; set; } }
+    // Auth
+    public sealed class RegisterDto { public string? Email { get; set; } public string? Password { get; set; } }
+    public sealed class LoginDto { public string? Email { get; set; } public string? Password { get; set; } }
+    public sealed class AuthResponse { public string? token { get; set; } }
 
-// Clinics & Patients
-public sealed class ClinicDto { public long Id { get; set; } public string? Name { get; set; } public string? Address { get; set; } }
-public sealed class PatientDto { public long Id { get; set; } public string? FirstName { get; set; } public string? LastName { get; set; } public string? Email { get; set; } }
-public sealed class CreatePatientRequest { public string? FirstName { get; set; } public string? LastName { get; set; } public string? Email { get; set; } }
+    // Clinics & Patients
+    public class UpsertProviderRequest
+    {
 
-// Appointments (strings per OpenAPI)
-public sealed class AppointmentDto
-{
-    public long Id { get; set; }
-    public long ClinicId { get; set; }
-    public long PatientId { get; set; }
-    public string Date { get; set; } = "";      // yyyy-MM-dd
-    public string StartTime { get; set; } = ""; // HH:mm:ss
-    public string EndTime { get; set; } = "";   // HH:mm:ss
-}
+        public string FullName { get; set; }
+        public string Specialty { get; set; }
+        public long ClinicId { get; set; }
+    }
+    public sealed class ClinicDto { public long Id { get; set; } public string? Name { get; set; } public string? Address { get; set; } }
+    public record ProviderDto(long Id, string Name, string Specialty, long ClinicId);
 
-public sealed class CreateAppointmentRequest
-{
-    public long ClinicId { get; set; }
-    public long PatientId { get; set; }
-    public DateTime? Date { get; set; }
-    public DateTime? StartTime { get; set; } 
-    public DateTime? EndTime { get; set; }
-    public string? Email { get; set; }    
-    public string? FirstName { get; set; }
-    public string? LastName { get; set; }
+    public record CreateAppointmentRequest
+    {
+        public long ClinicId { get; set; }
+        public long ProviderId { get; set; } = 0;
 
-    public string SelectedClinicIdStr { get; set; } = "";
-    public string SelectedPatientIdStr { get; set; }   = "";
+        public string Date { get; set; } = "";      // yyyy-MM-dd 
 
-    private DateTime? createDate;
+        public long PatientId { get; set; }
+        public DateTime StartUtc { get; set; }
+        public DateTime EndUtc { get; set; }
+        public string? Notes { get; set; }
+    }
+    public record TimeslotDto(long Id, long ProviderId, DateTime StartUtc, DateTime EndUtc, bool IsBooked);
+    public record CreateTimeslotRequest(long ProviderId, DateTime StartUtc, DateTime EndUtc);
+    public sealed class PatientDto { public long Id { get; set; } public string? FirstName { get; set; } public string? LastName { get; set; } public string? Email { get; set; } }
+    public sealed class CreatePatientRequest { public string? FirstName { get; set; } public string? LastName { get; set; } public string? Email { get; set; } }
 
-    private DateTime? createStartDateTime;
-    private DateTime? createEndDateTime;
+    // Appointments (strings per OpenAPI)
+    public sealed class AppointmentDto
+    {
+        public long Id { get; set; }
+        public long ClinicId { get; set; }
+        public long PatientId { get; set; }
+        public string Date { get; set; } = "";      // yyyy-MM-dd
+        public string StartTime { get; set; } = ""; // HH:mm:ss
+        public string EndTime { get; set; } = "";   // HH:mm:ss
+        public string? Email { get; set; }
+
+   
+   
+  
+
+//public sealed class CreateAppointmentRequest
+//{
+//    public long ClinicId { get; set; }
+//    public long PatientId { get; set; }
+//    public DateTime? Date { get; set; }
+//    public DateTime? StartTime { get; set; } 
+//    public DateTime? EndTime { get; set; }
+//    public string? Email { get; set; }    
+//    public string? FirstName { get; set; }
+//    public string? LastName { get; set; }
+
+//    public string SelectedClinicIdStr { get; set; } = "";
+//    public string SelectedPatientIdStr { get; set; }   = "";
+
+//    private DateTime? createDate;
+
+//    private DateTime? createStartDateTime;
+//    private DateTime? createEndDateTime;
 
     public string PatientIdText
-    {
-        get => PatientId.ToString();
-        set
         {
-            if (int.TryParse(value, out var id))
+            get => PatientId.ToString();
+            set
             {
-                PatientId = id;
+                if (int.TryParse(value, out var id))
+                {
+                    PatientId = id;
+                }
             }
         }
-    }
 
-    public string ClinicIdText
-    {
-        get => ClinicId.ToString();
-        set
+        public string ClinicIdText
         {
-            if (int.TryParse(value, out var id))
+            get => ClinicId.ToString();
+            set
             {
-                ClinicId = id;
+                if (int.TryParse(value, out var id))
+                {
+                    ClinicId = id;
+                }
             }
         }
-    }
 
+    }
 }

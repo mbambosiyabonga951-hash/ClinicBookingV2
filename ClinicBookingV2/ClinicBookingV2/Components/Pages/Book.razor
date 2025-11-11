@@ -1,0 +1,217 @@
+﻿@page "/book"
+@using ClinicBooking.Client.Models
+@using ClinicBooking.Client.Services
+@inject IProvidersApi Providers
+@inject ITimeslotsApi Timeslots
+@inject IAppointmentsApi Appointments
+@inject IClinicsApi Clinics
+@inject IPatientsApi Patients
+@inject NavigationManager Nav
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Add Appointment</h5>
+
+            <div class="row g-3">
+                <!-- Clinic -->
+                <div class="col-md-4">
+                    <label class="form-label">Clinic</label>
+                    <InputSelect class="form-select" @bind-Value="selectedClinicId" @onchange="OnClinicChanged">
+                        <option value="">-- Select clinic --</option>
+                        @foreach (var c in clinics)
+                        {
+                            <option value="@c.Id.ToString()">@c.Name</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <!-- Provider (filtered by clinic) -->
+                <div class="col-md-4">
+                    <label class="form-label">Provider</label>
+                    <InputSelect class="form-select" @bind-Value="selectedProviderId" @onchange="OnProviderChanged" disabled="@(!providers.Any())">
+                        <option value="">-- Select provider --</option>
+                        @foreach (var p in providers)
+                        {
+                            <option value="@p.Id.ToString()">@p.Name</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <!-- Patient -->
+                <div class="col-md-4">
+                    <label class="form-label">Patient</label>
+                    <InputSelect class="form-select" @bind-Value="selectedPatientId">
+                        <option value="">-- Select patient --</option>
+                        @foreach (var pt in patients)
+                        {
+                            <option value="@pt.Id.ToString()">@pt.FirstName</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <!-- Date -->
+                <div class="col-md-4">
+                    <label class="form-label">Date</label>
+                    <InputDate @bind-Value="date" class="form-control" />
+                </div>
+
+                <div class="col-12">
+                    <button class="btn btn-primary" @onclick="LoadSlots" disabled="@(!CanLoadSlots)">
+                        Load Slots
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (slots is not null)
+{
+    <div class="mt-4">
+        <h4>Available Slots</h4>
+        @if (slots.Length == 0)
+        {
+            <p class="text-muted">No slots found for the selected provider and date.</p>
+        }
+        else
+        {
+            <ul class="list-group">
+                @foreach (var s in slots)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>@s.StartUtc.ToLocalTime():t - @s.EndUtc.ToLocalTime():t</span>
+                        <button class="btn btn-success btn-sm" @onclick="() => BookAppointment(s)">Book</button>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+}
+
+@code {
+    // Backing IDs (long) used for API calls
+    private long clinicId;
+    private long providerId;
+    private long patientId;
+
+    // Dropdown-bound string values (InputSelect binds to string)
+    private string? selectedClinicId;
+    private string? selectedProviderId;
+    private string? selectedPatientId;
+
+    private DateOnly date = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+    private TimeslotDto[]? slots;
+
+    private List<ClinicDto> clinics = new();
+    private List<ProviderDto> providers = new();
+    private List<PatientDto> patients = new();
+
+    private bool CanLoadSlots =>
+        clinicId > 0 && providerId > 0 && patientId > 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Preload base data
+        clinics = (await Clinics.GetAsync()).OrderBy(c => c.Name).ToList();
+        patients = (await Patients.GetAsync()).OrderBy(p => p.FirstName).ToList();
+
+        // Prefill from querystring if present
+        var uri = new Uri(Nav.Uri);
+        var q = System.Web.HttpUtility.ParseQueryString(uri.Query);
+
+        if (long.TryParse(q.Get("clinicId"), out var cid))
+        {
+            selectedClinicId = cid.ToString();
+            clinicId = cid;
+        }
+
+        if (long.TryParse(q.Get("providerId"), out var pid))
+        {
+            selectedProviderId = pid.ToString();
+            providerId = pid;
+        }
+
+        // Load providers for clinic (if clinic preselected)
+        await LoadProvidersForClinic();
+    }
+
+    private async Task OnClinicChanged(ChangeEventArgs e)
+    {
+        selectedClinicId = e?.Value?.ToString();
+        clinicId = ParseLongOrZero(selectedClinicId);
+
+        // Reset provider selection and list, then reload for the chosen clinic
+        selectedProviderId = null;
+        providerId = 0;
+        await LoadProvidersForClinic();
+
+        // Optional: clear slots when any selection changes
+        slots = null;
+        StateHasChanged();
+    }
+
+    private Task OnProviderChanged(ChangeEventArgs e)
+    {
+        selectedProviderId = e?.Value?.ToString();
+        providerId = ParseLongOrZero(selectedProviderId);
+
+        // Optional: clear slots when provider changes
+        slots = null;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private async Task LoadProvidersForClinic()
+    {
+        providers.Clear();
+
+        if (clinicId <= 0)
+            return;
+
+        // Prefer a filtered endpoint if you have it (uncomment and use if available):
+        // providers = (await Providers.GetByClinicAsync(clinicId)).OrderBy(p => p.FullName).ToList();
+
+        // Fallback: get all providers and filter locally by their ClinicId field
+        var allProviders = await Providers.GetAsync();
+        providers = allProviders
+            .Where(p => p.ClinicId == clinicId)
+            .OrderBy(p => p.Name)
+            .ToList();
+    }
+
+    private async Task LoadSlots()
+    {
+        // Use your specific endpoint. You had this earlier:
+        // slots = await Timeslots.GetByProviderAndDateAsync(providerId, date);
+
+        // If you only have a generic GetAsync() (not ideal), filter client-side by date/provider:
+        var all = await Timeslots.GetAsync();
+        slots = all
+            .Where(s => s.ProviderId == providerId && DateOnly.FromDateTime(s.StartUtc.Date) == date)
+            .OrderBy(s => s.StartUtc)
+            .ToArray();
+    }
+
+    private async Task BookAppointment(TimeslotDto s)
+    {
+        // Keep patientId in sync with dropdown
+        patientId = ParseLongOrZero(selectedPatientId);
+
+        var req = new CreateAppointmentRequest
+        {
+            ClinicId = clinicId,
+            ProviderId = providerId,
+            PatientId = patientId,
+            StartUtc = s.StartUtc,
+            EndUtc = s.EndUtc,
+            Notes = null
+        };
+
+        await Appointments.CreateAsync(req);
+        Nav.NavigateTo("/appointments", true);
+    }
+
+    private static long ParseLongOrZero(string? value)
+        => long.TryParse(value, out var x) ? x : 0;
+}

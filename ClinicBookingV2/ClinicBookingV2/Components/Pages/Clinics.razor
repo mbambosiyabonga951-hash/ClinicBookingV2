@@ -1,0 +1,29 @@
+﻿@page "/clinics"
+@using ClinicBooking.Client.Models
+@using ClinicBooking.Client.Services
+@inject IClinicsApi ClinicsApi
+@* @rendermode InteractiveServer *@
+
+<h3>Clinics</h3>
+
+@if (items is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <ul>
+        @foreach (var c in items)
+        {
+            <li>@c.Name (@c.Address) — <a href="providers/@c.Id">Providers</a></li>
+        }
+    </ul>
+}
+
+@code {
+    private ClinicDto[]? items;
+    protected override async Task OnInitializedAsync()
+    {
+        items = (await ClinicsApi.GetAsync()).ToArray();
+    }
+}

@@ -5,9 +5,10 @@
     <label for="navmenu-toggle" class="navmenu-icon"><FluentIcon Value="@(new Icons.Regular.Size20.Navigation())" Color="Color.Fill" /></label>
     <nav class="sitenav" aria-labelledby="main-menu" onclick="document.getElementById('navmenu-toggle').click();">
         <FluentNavMenu Id="main-menu" Collapsible="true" Width="250" Title="Navigation menu" @bind-Expanded="expanded">
-            <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Color.Accent">Home</FluentNavLink>
-            <FluentNavLink Href="login" Icon="@(new Icons.Regular.Size20.BuildingLighthouse())" IconColor="Color.Accent">Login</FluentNavLink>
-            <FluentNavLink Href="register" Icon="@(new Icons.Regular.Size20.People())" IconColor="Color.Accent">Register</FluentNavLink>
+            <FluentNavLink Href="/Clinics" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Color.Accent">Clinics</FluentNavLink>
+            <FluentNavLink Href="/Login" Icon="@(new Icons.Regular.Size20.BuildingLighthouse())" IconColor="Color.Accent">Login</FluentNavLink>
+            <FluentNavLink Href="/Register" Icon="@(new Icons.Regular.Size20.People())" IconColor="Color.Accent">Register</FluentNavLink>
+            <FluentNavLink Href="/CreateAppointments" Icon="@(new Icons.Regular.Size20.CalendarAdd())" IconColor="Color.Accent">Create Appointments</FluentNavLink>
         </FluentNavMenu>
     </nav>
 </div>

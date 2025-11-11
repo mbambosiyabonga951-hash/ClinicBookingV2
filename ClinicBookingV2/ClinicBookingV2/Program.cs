@@ -23,10 +23,17 @@ builder.Services.AddHttpClient("Api", client =>
 builder.Services.AddBlazoredLocalStorage();
 
 // App services
+builder.Services.AddHttpClient<ClinicsApi>();
+builder.Services.AddHttpClient<PatientsApi>();
+builder.Services.AddHttpClient<ProvidersApi>();
+builder.Services.AddHttpClient<AppointmentsApi>();
 builder.Services.AddScoped<IAuthApi, AuthApi>();
 builder.Services.AddScoped<IClinicsApi, ClinicsApi>();
 builder.Services.AddScoped<IPatientsApi, PatientsApi>();
+builder.Services.AddScoped<IProvidersApi, ProvidersApi>();
 builder.Services.AddScoped<IAppointmentsApi, AppointmentsApi>();
+builder.Services.AddScoped<ITimeslotsApi, TimeslotsApi>();
+
 
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthStateProvider>();

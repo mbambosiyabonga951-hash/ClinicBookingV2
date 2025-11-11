@@ -1,0 +1,33 @@
+﻿@page "/providers/{ClinicId:long}"
+@using ClinicBooking.Client.Models
+@inject IProvidersApi _providers
+@* @rendermode InteractiveServer *@
+
+<h3>Providers</h3>
+
+@if (items is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <ul>
+        @foreach (var p in items)
+        {
+            <li>@p.Name (@p.Specialty) — <a href="/book?providerId=@p.Id&clinicId=@p.ClinicId">Book</a></li>
+        }
+    </ul>
+}
+
+@code {
+    [Parameter]
+    public long ClinicId { get; set; }
+
+    private ProviderDto[]? items;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var allProviders = await _providers.GetAsync();
+        items = allProviders.Where(p => p.ClinicId == ClinicId).ToArray();
+    }
+}

@@ -36,7 +36,7 @@
 
         </FluentStack>
 
-        <FluentStack HorizontalAlignment="HorizontalAlignment.Center">
+        <FluentStack>
             <FluentAnchor Style="margin-top:10px;" Appearance="Appearance.Accent" Href="/AppointmentList">View Appointments</FluentAnchor>
 
             <FluentButton Type="ButtonType.Submit" Style="margin-top:10px;" Appearance="Appearance.Accent"
@@ -65,9 +65,9 @@
             clinics = (await ClinicsApi.GetAsync()).ToList();
             patients = (await PatientsApi.GetAsync()).ToList();
 
-            createModel.Date = DateTime.Today;
-            createModel.StartTime = DateTime.Today.AddHours(9);
-            createModel.EndTime = DateTime.Today.AddHours(10);
+            createModel. = DateTime.Today;
+            createModel.StartUtc = DateTime.Today.AddHours(9);
+            createModel.EndUtc = DateTime.Today.AddHours(10);
         }
     }
 

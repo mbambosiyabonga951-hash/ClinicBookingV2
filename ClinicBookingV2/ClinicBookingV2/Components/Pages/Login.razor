@@ -38,8 +38,8 @@
       busy = true;
       try
       {
-            if (model.Email == null || model.Password == null)
-                model.Email = "siya2@gmail.com"; model.Password = "Siya@1234";
+            // if (model.Email == null || model.Password == null)
+            //     model.Email = "siya2@gmail.com"; model.Password = "Siya@1234";
 
           var token = await AuthApi.LoginAsync(model);
           if (string.IsNullOrWhiteSpace(token)) return;
