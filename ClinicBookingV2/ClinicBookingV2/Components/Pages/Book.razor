@@ -8,7 +8,7 @@
 @inject IClinicsApi Clinics
 @inject IPatientsApi Patients
 @inject NavigationManager Nav
-@rendermode InteractiveWebAssembly
+@rendermode InteractiveServer
 
 <div class="container mt-4">
     <div class="card shadow-sm">
@@ -59,7 +59,8 @@
                 </div>
 
                 <div class="col-12">
-                    <button class="btn btn-primary" @onclick="LoadSlots" disabled="@(!CanLoadSlots)">
+                    <button class="btn btn-primary" @onclick="LoadSlots">
+                       @*  disabled="@(!CanLoadSlots)" *@
                         Load Slots
                     </button>
                 </div>
@@ -185,14 +186,18 @@
     private async Task LoadSlots()
     {
         // Use your specific endpoint. You had this earlier:
-        // slots = await Timeslots.GetByProviderAndDateAsync(providerId, date);
+        var items = await Timeslots.GetByProviderAndDateAsync(providerId, date);
 
-        // If you only have a generic GetAsync() (not ideal), filter client-side by date/provider:
-        var all = await Timeslots.GetAsync();
-        slots = all
-            .Where(s => s.ProviderId == providerId && DateOnly.FromDateTime(s.StartUtc.Date) == date)
+        slots = items
             .OrderBy(s => s.StartUtc)
             .ToArray();
+
+        // If you only have a generic GetAsync() (not ideal), filter client-side by date/provider:
+        //var all = await Timeslots.GetAsync();
+        // slots = all
+        //     .Where(s => s.ProviderId == providerId && DateOnly.FromDateTime(s.StartUtc.Date) == date)
+        //     .OrderBy(s => s.StartUtc)
+        //     .ToArray();
     }
 
     private async Task BookAppointment(TimeslotDto s)
