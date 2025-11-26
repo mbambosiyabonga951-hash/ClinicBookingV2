@@ -21,17 +21,28 @@ namespace ClinicBooking.Client.Models {
     public record CreateAppointmentRequest
     {
         public long ClinicId { get; set; }
-        public long ProviderId { get; set; } = 0;
+        public long ProviderId { get; set; } 
 
-        public string Date { get; set; } = "";      // yyyy-MM-dd 
+        public long TimeslotId { get; set; }
+
+        public DateOnly Date { get; set; }       // yyyy-MM-dd 
 
         public long PatientId { get; set; }
-        public DateTime StartUtc { get; set; }
-        public DateTime EndUtc { get; set; }
+        public TimeOnly StartUtc { get; set; }
+        public TimeOnly EndUtc { get; set; }
         public string? Notes { get; set; }
     }
-    public record TimeslotDto(long Id, long ProviderId, DateTime StartUtc, DateTime EndUtc, bool IsBooked);
-    public record CreateTimeslotRequest(long ProviderId, DateTime StartUtc, DateTime EndUtc);
+    public record TimeslotDto
+    {
+        public long Id { get; set; }
+        public string StartTime { get; set; } = default!;
+        public string EndTime { get; set; } = default!;
+        public long ProviderId { get; set; }
+
+        public TimeOnly StartUtc => TimeOnly.Parse(StartTime);
+        public TimeOnly EndUtc => TimeOnly.Parse(EndTime);
+    }
+    public record CreateTimeslotRequest(long ProviderId, TimeOnly StartUtc, TimeOnly EndUtc);
     public sealed class PatientDto { public long Id { get; set; } public string? FirstName { get; set; } public string? LastName { get; set; } public string? Email { get; set; } }
     public sealed class CreatePatientRequest { public string? FirstName { get; set; } public string? LastName { get; set; } public string? Email { get; set; } }
 
@@ -50,24 +61,6 @@ namespace ClinicBooking.Client.Models {
    
   
 
-//public sealed class CreateAppointmentRequest
-//{
-//    public long ClinicId { get; set; }
-//    public long PatientId { get; set; }
-//    public DateTime? Date { get; set; }
-//    public DateTime? StartTime { get; set; } 
-//    public DateTime? EndTime { get; set; }
-//    public string? Email { get; set; }    
-//    public string? FirstName { get; set; }
-//    public string? LastName { get; set; }
-
-//    public string SelectedClinicIdStr { get; set; } = "";
-//    public string SelectedPatientIdStr { get; set; }   = "";
-
-//    private DateTime? createDate;
-
-//    private DateTime? createStartDateTime;
-//    private DateTime? createEndDateTime;
 
     public string PatientIdText
         {

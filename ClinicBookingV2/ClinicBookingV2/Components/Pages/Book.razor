@@ -83,7 +83,7 @@
                 @foreach (var s in slots)
                 {
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <span>@s.StartUtc.ToLocalTime():t - @s.EndUtc.ToLocalTime():t</span>
+                        <span>@s.StartUtc:t - @s.EndUtc:t</span>
                         <button class="btn btn-success btn-sm" @onclick="() => BookAppointment(s)">Book</button>
                     </li>
                 }
@@ -209,6 +209,7 @@
         {
             ClinicId = clinicId,
             ProviderId = providerId,
+            TimeslotId = s.Id,
             PatientId = patientId,
             StartUtc = s.StartUtc,
             EndUtc = s.EndUtc,
@@ -216,7 +217,7 @@
         };
 
         await Appointments.CreateAsync(req);
-        Nav.NavigateTo("/appointments", true);
+        Nav.NavigateTo("/AppointmentList", true);
     }
 
     private static long ParseLongOrZero(string? value)

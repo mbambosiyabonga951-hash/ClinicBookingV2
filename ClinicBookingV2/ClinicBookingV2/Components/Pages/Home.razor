@@ -44,9 +44,9 @@
                     await LoadAsync();
                 }
             }
-            createModel.Date = null;
-            createModel.StartUtc = DateTime.MinValue;
-            createModel.EndUtc = DateTime.UtcNow;
+            createModel.Date = DateOnly.FromDateTime(DateTime.UtcNow);
+            createModel.StartUtc = TimeOnly.MinValue;
+            createModel.EndUtc = TimeOnly.FromDateTime(DateTime.UtcNow);
         }
         finally
         {
